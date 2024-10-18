@@ -6,5 +6,6 @@ RUN apt-get update \
         php8.3-intl \
         php8.3-pgsql \
         php8.3-xdebug \
+        php8.3-amqp \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*

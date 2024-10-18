@@ -1,0 +1,13 @@
+###
+
+@base=http://localhost:10000/api
+
+POST {{base}}/report/orders
+Content-Type: application/json
+
+{
+  "preparedDate": "last_month",
+  "fileType": "json"
+}
+
+###
