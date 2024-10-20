@@ -23,7 +23,7 @@ class ReportController extends AbstractController
     # Маршрут скачивания отчета по ID и типу
     # Маршрут просмотра (получение) отчета по ID и типу отчета
 
-    #[Route('/api/report/orders', name: 'app_report', methods: ['POST'])]
+    #[Route('/api/reports/orders', name: 'app_report', methods: ['POST'])]
     public function generateOrdersReport(
         #[MapRequestPayload] ReportOrdersDto $reportOrder
     ): JsonResponse

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ReportRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -19,6 +20,9 @@ class Report
 
     #[ORM\Column(length: 255)]
     private ?string $file_type = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeInterface $createdAt = null;
 
     public function getId(): Uuid
     {
@@ -51,6 +55,18 @@ class Report
     public function setFileType(string $file_type): static
     {
         $this->file_type = $file_type;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

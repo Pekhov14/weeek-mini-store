@@ -2,7 +2,7 @@
 
 @base=http://localhost:10000/api
 
-POST {{base}}/report/orders
+POST {{base}}/reports/orders
 Content-Type: application/json
 
 {
@@ -11,3 +11,5 @@ Content-Type: application/json
 }
 
 ###
+
+GET {{base}}/categories/tree

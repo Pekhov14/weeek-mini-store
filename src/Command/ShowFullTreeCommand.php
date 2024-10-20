@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Repository\CategoryRepository;
+use App\Service\CategoryService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,10 +15,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ShowFullTreeCommand extends Command
 {
-    private const int MAX_DEPTH = 6;
-
     public function __construct(
-        private readonly CategoryRepository $categoryRepository,
+        private readonly CategoryService $categoryService,
     ) {
         parent::__construct();
     }
@@ -27,11 +25,7 @@ class ShowFullTreeCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $categories = $this->categoryRepository->findCategoriesWithProducts();
-
-        $groupedCategories = $this->groupCategoriesByParent($categories);
-        $categoryTree = $this->buildCategoryTree($groupedCategories);
-
+        $categoryTree = $this->categoryService->getCategoryTree();
         $this->printCategoryTreeConsole($io, $categoryTree);
 
         return Command::SUCCESS;
@@ -65,50 +59,5 @@ class ShowFullTreeCommand extends Command
                 $this->printCategoryTreeConsole($io, $category['children'], $newPrefix, $isCategoryLast);
             }
         }
-    }
-
-    private function groupCategoriesByParent($categories): array
-    {
-        $grouped = [];
-
-        foreach ($categories as $category) {
-            $parentId = $category->getParent() ? $category->getParent()->getId() : null;
-            $grouped[$parentId][] = $category;
-        }
-
-        return $grouped;
-    }
-
-    private function buildCategoryTree(array $groupedCategories, ?int $parentId = null, int $currentDepth = 0): array
-    {
-        $branch = [];
-
-        if (!isset($groupedCategories[$parentId])) {
-            return $branch;
-        }
-
-        foreach ($groupedCategories[$parentId] as $category) {
-            $products = [];
-            foreach ($category->getProducts() as $product) {
-                $products[] = [
-                    'id' => $product->getId(),
-                    'name' => $product->getName(),
-                    'price' => $product->getPrice(),
-                ];
-            }
-
-            $branch[] = [
-                'id' => $category->getId(),
-                'name' => $category->getName(),
-                'sort' => $category->getSort(),
-                'parent' => $category->getParent() ? $category->getParent()->getId() : null,
-                'products' => $products,
-                'children' => ($currentDepth < self::MAX_DEPTH)
-                    ? $this->buildCategoryTree($groupedCategories, $category->getId(), $currentDepth + 1)
-                    : [],
-            ];
-        }
-
-        return $branch;
     }
 }

@@ -53,6 +53,7 @@ class ReportRepository extends ServiceEntityRepository
         $report->setId($reportId);
         $report->setStatus($status->value);
         $report->setFileType($fileType->value);
+        $report->setCreatedAt(new \DateTimeImmutable());
 
         $this->getEntityManager()->persist($report);
         $this->getEntityManager()->flush();
