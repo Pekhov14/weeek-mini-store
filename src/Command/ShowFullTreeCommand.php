@@ -15,6 +15,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ShowFullTreeCommand extends Command
 {
+    private const int MAX_DEPTH = 6;
+
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
     ) {
@@ -77,7 +79,7 @@ class ShowFullTreeCommand extends Command
         return $grouped;
     }
 
-    private function buildCategoryTree($groupedCategories, $parentId = null): array
+    private function buildCategoryTree(array $groupedCategories, ?int $parentId = null, int $currentDepth = 0): array
     {
         $branch = [];
 
@@ -101,7 +103,9 @@ class ShowFullTreeCommand extends Command
                 'sort' => $category->getSort(),
                 'parent' => $category->getParent() ? $category->getParent()->getId() : null,
                 'products' => $products,
-                'children' => $this->buildCategoryTree($groupedCategories, $category->getId()),
+                'children' => ($currentDepth < self::MAX_DEPTH)
+                    ? $this->buildCategoryTree($groupedCategories, $category->getId(), $currentDepth + 1)
+                    : [],
             ];
         }
 
