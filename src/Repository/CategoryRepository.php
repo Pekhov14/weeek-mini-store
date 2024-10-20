@@ -40,4 +40,15 @@ class CategoryRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findCategoriesWithProducts(): array
+    {
+        return $this->createQueryBuilder('c')
+                    ->leftJoin('c.products', 'p')
+                    ->addSelect('p')
+                    ->orderBy('c.parent', 'DESC')
+                    ->addOrderBy('c.sort', 'ASC')
+                    ->getQuery()
+                    ->getResult();
+    }
 }

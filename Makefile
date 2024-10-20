@@ -36,5 +36,7 @@ ui-rabbitmq:
 order-report-%:
 	docker compose exec php-fpm php bin/console app:generate-order-report "last_month" --fileType=$*
 
+show-full-tree:
+	docker compose exec php-fpm php bin/console app:show-full-tree
 
 .PHONY: up down stop clean
