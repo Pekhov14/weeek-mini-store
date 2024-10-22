@@ -39,7 +39,10 @@ class ShowFullTreeCommand extends Command
             $isCategoryLast = $index === array_key_last($categories);
             $currentPrefix = $isLast ? '└── ' : '├── ';
 
-            $io->writeln(sprintf('%s <fg=green>%s</>', $prefix . $currentPrefix, $category['name']));
+            $io->writeln(sprintf(
+                '%s <fg=green>%s</> [id: %s, sort: %s]',
+                $prefix . $currentPrefix, $category['name'], $category['id'], $category['sort']
+            ));
 
 
             if (!empty($category['products'])) {
@@ -48,7 +51,10 @@ class ShowFullTreeCommand extends Command
                     $productPrefix = $isProductLast ? '└── ' : '├── ';
 
                     $message = $prefix . $childPrefix . $productPrefix;
-                    $product = $product['name'] . ' (Цена: ' . $product['price'] . ')';
+                    $product = sprintf(
+                        '%s (Цена: %s) [id: %s, sort: %s]',
+                        $product['name'], $product['price'], $product['id'], $product['sort']
+                    );
 
                     $io->writeln(sprintf('%s <fg=#c0392b>%s</>', $message, $product));
                 }

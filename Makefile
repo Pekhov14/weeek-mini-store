@@ -39,4 +39,7 @@ order-report-%:
 show-full-tree:
 	docker compose exec php-fpm php bin/console app:show-full-tree
 
+drag-and-drop:
+	docker compose exec php-fpm php bin/console app:drag-and-drop
+
 .PHONY: up down stop clean

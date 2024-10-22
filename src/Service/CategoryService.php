@@ -2,11 +2,13 @@
 
 namespace App\Service;
 
+use App\DTO\Move\CategoryMoveDTO;
+use App\DTO\Sort\CategorySortDTO;
 use App\Repository\CategoryRepository;
 
 class CategoryService
 {
-    private const int MAX_DEPTH = 6;
+    private const MAX_DEPTH = 6;
 
     public function __construct(
         private readonly CategoryRepository $categoryRepository
@@ -45,6 +47,7 @@ class CategoryService
                     'id' => $product->getId(),
                     'name' => $product->getName(),
                     'price' => $product->getPrice(),
+                    'sort' => $product->getSort(),
                 ];
             }
 
@@ -61,5 +64,15 @@ class CategoryService
         }
 
         return $branch;
+    }
+
+    public function sortingCategory(CategorySortDTO $sortingCategoryDTO): void
+    {
+
+    }
+
+    public function moveCategory(CategoryMoveDTO $sortingCategoryDTO): void
+    {
+
     }
 }

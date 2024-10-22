@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\DTO\Move\CategoryMoveDTO;
 use App\DTO\Move\ProductMoveDTO;
 use App\DTO\Sort\CategorySortDTO;
 use App\DTO\Sort\ProductSortDTO;
@@ -31,40 +32,25 @@ class DragAndDropCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $interactionTypes = DragAndDropInteractionType::getValues();
 
-        $before = ElementPosition::BEFORE;
-        $after  = ElementPosition::AFTER;
-
-        $selectedChoice = (string)$io->choice('Что будем делать?', DragAndDropInteractionType::getValues());
+        $selectedChoice = $io->choice('Что будем делать?', $interactionTypes);
 
         switch ($selectedChoice) {
-            // Сортировка категории
             case DragAndDropInteractionType::SORT_CATEGORY->value:
-                $workCategory = (int) $io->ask('Введите id категории где будет производиться сортировка', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id категории');
-                    }
-                });
-
-                $selectedCategory = (int) $io->ask('Введите id категории для изменения сортировки', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id категории которую нужно переместить');
-                    }
-                });
-
+                $workCategory = (int) $io->ask('Введите id категории где будет производиться сортировка', validator: $this->validateCategoryId());
+                $selectedCategory = (int) $io->ask('Введите id категории для изменения сортировки', validator: $this->validateCategoryId());
                 $relativeToCategory = (int) $io->ask(
                     sprintf('Укажите id категории перед/после которой будет размещена выбранная категория %s', $selectedCategory),
-                    null, function ($choice) {
-                        if ($choice === '' || !is_numeric($choice)) {
-                            throw new \RuntimeException('Необходимо ввести id категории куда нужно переместить');
-                        }
-                    }
+                    validator: $this->validateCategoryId()
                 );
 
-                $position = $io->choice(sprintf('Разместить перед категорией %s или после?', $relativeToCategory), [
-                    $before->value => $before->getLabel(),
-                    $after->value  => $after->getLabel(),
-                ]);
+                $position = ElementPosition::getByLabel(
+                    $io->choice(sprintf('Разместить перед категорией %s или после', $relativeToCategory), [
+                        ElementPosition::BEFORE->getLabel(),
+                        ElementPosition::AFTER->getLabel(),
+                    ])
+                );
 
                 try {
                     $dto = new CategorySortDTO($selectedCategory, $relativeToCategory, $position, $workCategory);
@@ -73,36 +59,26 @@ class DragAndDropCommand extends Command
                     $io->error($e->getMessage());
                 }
 
-                $io->success("Категория $selectedCategory перемещена $position категории $relativeToCategory.");
+                $io->success(sprintf(
+                    "Категория %d перемещена %s категории %d",
+                    $selectedCategory, mb_strtolower($position->value), $relativeToCategory
+                ));
                 break;
 
-            // Сортировка товара
             case DragAndDropInteractionType::SORT_PRODUCT->value:
-                $workCategory = (int) $io->ask('Введите id категории где будет производиться сортировка', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id категории');
-                    }
-                });
-
-                $selectedProduct = (int) $io->ask('Введите id товара для изменения сортировки', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id товара');
-                    }
-                });
-
+                $workCategory = (int) $io->ask('Введите id категории где будет производиться сортировка', validator: $this->validateCategoryId());
+                $selectedProduct = (int) $io->ask('Введите id товара для изменения сортировки', validator: $this->validateProductId());
                 $relativeToProduct = (int) $io->ask(
                     sprintf('Укажите id товара перед/после которого будет размещен выбранный товар %s', $selectedProduct),
-                    null, function ($choice) {
-                        if ($choice === '' || !is_numeric($choice)) {
-                            throw new \RuntimeException('Необходимо ввести id товара перед/после которого перемещаем');
-                        }
-                    }
+                    validator: $this->validateProductId()
                 );
 
-                $position = $io->choice(sprintf('Разместить перед товаром %s или после?', $relativeToProduct), [
-                    $before->value => $before->getLabel(),
-                    $after->value  => $after->getLabel(),
-                ]);
+                $position = ElementPosition::getByLabel(
+                    $io->choice(sprintf('Разместить перед товаром %s или после?', $relativeToProduct), [
+                        ElementPosition::BEFORE->getLabel(),
+                        ElementPosition::AFTER->getLabel(),
+                    ])
+                );
 
                 try {
                     $dto = new ProductSortDTO($selectedProduct, $relativeToProduct, $position, $workCategory);
@@ -111,53 +87,52 @@ class DragAndDropCommand extends Command
                     $io->error($e->getMessage());
                 }
 
-                $io->success("Товар $selectedProduct перемещен $position товара $relativeToProduct.");
+                $io->success(sprintf(
+                    "Товар %d перемещен %s товара %d",
+                    $selectedProduct, mb_strtolower($position->value), $relativeToProduct
+                ));
                 break;
 
-            // Перемещение категории
             case DragAndDropInteractionType::MOVE_CATEGORY->value:
                 $categoryToMove = $io->ask('Введите id категории, которую нужно переместить');
-
                 $newParentCategory = $io->ask('Укажите id новой родительской категории');
-
                 $relativeToCategory = $io->ask(sprintf('Укажите id категории перед/после которой будет перемещена категория %s', $categoryToMove));
 
-                $position = $io->choice(sprintf('Переместить перед категорией %s или после?', $relativeToCategory), [
-                    'before' => 'Перед',
-                    'after'  => 'После',
-                ]);
-
-                // Логика перемещения категории (например, вызов API)
-                $io->success("Категория $categoryToMove перемещена в категорию $newParentCategory $position категории $relativeToCategory.");
-                break;
-
-            // Перемещение товара
-            case DragAndDropInteractionType::MOVE_PRODUCT->value:
-                $productToMove = (int) $io->ask('Введите id товара, который нужно переместить', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id товара');
-                    }
-                });
-
-                $newCategory = (int) $io->ask('Укажите id новой категории', null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id новой категории');
-                    }
-                });
-
-                $relativeToProduct = (int) $io->ask(
-                    sprintf('Укажите id товара перед/после которого будет перемещен товар %s', $productToMove),
-                    null, function ($choice) {
-                    if ($choice === '' || !is_numeric($choice)) {
-                        throw new \RuntimeException('Необходимо ввести id товара перед/после которого перемещаем');
-                    }
-                }
+                $position = ElementPosition::getByLabel(
+                    $io->choice(sprintf('Переместить перед категорией %s или после?', $relativeToCategory), [
+                        ElementPosition::BEFORE->getLabel(),
+                        ElementPosition::AFTER->getLabel(),
+                    ])
                 );
 
-                $position = $io->choice(sprintf('Переместить перед товаром %s или после?', $relativeToProduct), [
-                    $before->value => $before->getLabel(),
-                    $after->value  => $after->getLabel(),
-                ]);
+                try {
+                    $dto = new CategoryMoveDTO($categoryToMove, $newParentCategory, $relativeToCategory, $position);
+                    $this->categoryService->moveCategory($dto);
+                } catch (\Exception $e) {
+                    $io->error($e->getMessage());
+                }
+
+                $io->success(sprintf(
+                    "Категория %d перемещена в категорию %d %s категории %d",
+                    $categoryToMove, $newParentCategory, mb_strtolower($position->value), $relativeToCategory
+                ));
+                break;
+
+            case DragAndDropInteractionType::MOVE_PRODUCT->value:
+                $productToMove = (int) $io->ask('Введите id товара, который нужно переместить', validator: $this->validateProductId());
+
+                $newCategory = (int) $io->ask('Укажите id новой категории', validator: $this->validateCategoryId());
+                $relativeToProduct = $io->ask(
+                    sprintf('Укажите id товара перед/после которого будет перемещен товар %d', $productToMove),
+                    validator: $this->validateProductId()
+                );
+
+                $position = ElementPosition::getByLabel(
+                    $io->choice(sprintf('Переместить перед товаром %d или после?', $relativeToProduct), [
+                        ElementPosition::BEFORE->getLabel(),
+                        ElementPosition::AFTER->getLabel(),
+                    ])
+                );
 
                 try {
                     $dto = new ProductMoveDTO($newCategory, $relativeToProduct, $position, $productToMove);
@@ -166,7 +141,10 @@ class DragAndDropCommand extends Command
                     $io->error($e->getMessage());
                 }
 
-                $io->success("Товар $productToMove перемещен в категорию $newCategory $position товара $relativeToProduct.");
+                $io->success(sprintf(
+                    "Товар %d перемещен в категорию %d %s товара %d",
+                    $productToMove, $newCategory, mb_strtolower($position->getLabel()), $relativeToProduct
+                ));
                 break;
 
             default:
@@ -175,5 +153,25 @@ class DragAndDropCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function validateCategoryId(): callable
+    {
+        return static function ($choice) {
+            if ($choice === '' || $choice === null || !is_int((int) $choice) || (int) $choice <= 0) {
+                throw new \RuntimeException('Необходимо ввести id категории');
+            }
+            return (int) $choice;
+        };
+    }
+
+    private function validateProductId(): callable
+    {
+        return static function ($choice) {
+            if ($choice === '' || $choice === null || !is_int((int) $choice) || (int) $choice <= 0) {
+                throw new \RuntimeException('Необходимо ввести id товара');
+            }
+            return (int) $choice;
+        };
     }
 }
