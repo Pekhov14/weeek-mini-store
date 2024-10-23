@@ -66,9 +66,10 @@ class CategoryService
         return $branch;
     }
 
-    public function sortingCategory(CategorySortDTO $sortingCategoryDTO): void
+    public function sortingCategory(CategorySortDTO $sortingCategoryDTO): bool
     {
-
+        $this->categoryRepository->sortingCategory($sortingCategoryDTO);
+        return true;
     }
 
     public function moveCategory(CategoryMoveDTO $sortingCategoryDTO): void

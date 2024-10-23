@@ -10,8 +10,8 @@ class CategoryMoveDTO
     public function __construct(
         #[Assert\NotBlank]
         public int $selectedCategory,       // ID категории, которую нужно переместить
-        #[Assert\NotBlank]
-        public int $newParentCategory,     // ID нового родительской категории
+        #[Assert\NotBlank(allowNull: true)]
+        public ?int $newParentCategory,     // ID нового родительской категории
         #[Assert\NotBlank]
         public int $relativeToCategory,    // ID категории, перед/после которой перемещается
         #[Assert\NotBlank]

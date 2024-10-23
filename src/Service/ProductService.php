@@ -5,7 +5,7 @@ namespace App\Service;
 use App\DTO\Move\ProductMoveDTO;
 use App\DTO\Sort\ProductSortDTO;
 
-class productService
+class ProductService
 {
     public function sortingProduct(ProductSortDTO $productSortDTO): void
     {
